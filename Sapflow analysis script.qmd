@@ -47,4 +47,4 @@ sf_treat <- sf_treat_clean %>%
   mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
   mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
 
-
+f
