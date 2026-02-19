@@ -6,4 +6,45 @@ editor: visual
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UH927/Sapflow-Analysis-project/HEAD)
 
 
-## R script 
+
+## R Script
+#This script contains code that cleans up the Sapflow analysis data while producing relevant figures for data analysis. 
+
+#preparing relevant R packages
+
+library(readr)
+library(ggplot2)
+library(tidyverse)
+
+#read in data
+metdata_clean <- read.csv("metdata.csv")
+sf_cont_clean <- read.csv("sapflow_control.csv")
+sf_treat_clean <- read.csv("sapflow_treatment.csv")
+
+#View the data
+View(metdata_clean)
+View(sf_cont_clean)
+View(sf_treat_clean)
+
+#convert to correct time
+metdata <- metdata_clean %>%
+  mutate(Timestamp = ymd_hms(datetime,tz = "Africa/Johannesburg"))
+  
+sf_cont <- sf_cont_clean %>%
+  mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Timestamp_2 = Timestamp+hours(2)) %>%
+  mutate(Date = as_date(Timestamp_2)) %>%
+  mutate(Hour = hour(Timestamp_2)) %>%
+  mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2)) 
+
+
+sf_treat <- sf_treat_clean %>%
+  mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Timestamp_2 = Timestamp+hours(2)) %>%
+  mutate(Date = as_date(Timestamp_2)) %>%
+  mutate(Hour = hour(Timestamp_2)) %>%
+  mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
+
+
