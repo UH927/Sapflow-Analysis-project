@@ -12,9 +12,10 @@ editor: visual
 
 #preparing relevant R packages
 
-library(readr)
+library(ggpubr)
 library(ggplot2)
 library(tidyverse)
+
 
 #read in data
 metdata_clean <- read.csv("metdata.csv")
@@ -86,3 +87,38 @@ sf_treat_marked <- remove_sapflow_outliers(sf_treat)
 sf_cont_clean <- sf_cont_marked %>% filter(!is_outlier | is.na(is_outlier))
 sf_treat_clean <- sf_treat_marked %>% filter(!is_outlier | is.na(is_outlier))
 
+#############################################
+#### creating a multi-panel figure of continuous data
+
+sapflow <- ggplot(NULL)+
+  geom_line(data=sf_cont_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="darkblue") +
+  geom_line(data=sf_treat_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="red") +
+  ylim(0.5,2) +
+  labs(x= "Date", y = "Heat Ratio") +
+  theme_minimal() +
+  xlab(NULL)
+
+soilmoisture <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = SM_T), col="pink") +
+  geom_line(data=metdata, aes(x=Timestamp, y = SM_C), col="lightblue") +
+  #ylim(0.5,2) +
+  labs(x= "Date", y = "Soil Water Potential (MPa)") +
+  theme_minimal() +
+  xlab(NULL)
+
+VPD <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = VPD)) +
+  labs(x= "Date", y = "VPD (kPa)") +
+  theme_minimal() +
+  xlab(NULL)
+
+Temp <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = AirTC_avg)) +
+  labs(x= "Date", y = "Air Temp (C)") +
+  theme_minimal() 
+  
+combined_plot <- ggarrange(sapflow, soilmoisture,VPD, Temp, ncol=1, align="v", legend = "right")
+combined_plot
+
+#remove unneeded plots
+rm(sapflow, soilmoisture,VPD, Temp)
