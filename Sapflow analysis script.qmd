@@ -47,4 +47,42 @@ sf_treat <- sf_treat_clean %>%
   mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
   mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
 
-f
+#remove unneeded variables
+rm(metdata_clean,sf_cont_clean, sf_treat_clean)
+
+#####################################
+### removing outliers
+
+
+#######################################
+# Function to remove outliers 
+remove_sapflow_outliers <- function(df) {
+  df <- df %>%
+    arrange(Timestamp) %>%
+    mutate(
+      val = Mean_Heat_Ratio,
+      lag1 = lag(val, 1),
+      lag2 = lag(val, 2),
+      lag3 = lag(val, 3),
+      lag4 = lag(val, 4),
+      lag5 = lag(val, 5)
+    ) %>%
+    rowwise() %>%
+    mutate(
+      rolling_mean = mean(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE),
+      rolling_sd = sd(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE),
+      is_outlier = abs(val - rolling_mean) > (2 * rolling_sd)
+    ) %>%
+    ungroup()
+  
+  return(df)
+}
+
+# Apply to both sapflow datasets
+sf_cont_marked <- remove_sapflow_outliers(sf_cont)
+sf_treat_marked <- remove_sapflow_outliers(sf_treat)
+
+# Filter out outliers for clean datasets
+sf_cont_clean <- sf_cont_marked %>% filter(!is_outlier | is.na(is_outlier))
+sf_treat_clean <- sf_treat_marked %>% filter(!is_outlier | is.na(is_outlier))
+
