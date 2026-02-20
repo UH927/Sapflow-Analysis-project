@@ -21,19 +21,57 @@ library(tidyverse)
 
 
 
+
+
+
+```{r,error=FALSE, message=FALSE}
 #read in data 
+ metdata1 <- read.csv("data/cleaned/metdata.csv")
+ sf_cont1 <- read.csv("data/cleaned/sapflow_control.csv") 
+ sf_treat1 <- read.csv("data/cleaned/sapflow_treatment.csv")
+```
 
-metdata1 \<- read.csv("metdata.csv") sf_cont1 \<- read.csv("sapflow_control.csv") sf_treat1 \<- read.csv("sapflow_treatment.csv")
 
-#View the data View(metdata1) View(sf_cont1) View(sf_treat1)
+```{r}
+#View the data 
+View(metdata1) 
+View(sf_cont1) 
+View(sf_treat1)
+```
 
+
+```{r}
 #convert to correct time metdata \<- metdata1 %\>% mutate(Timestamp = ymd_hms(datetime,tz = "Africa/Johannesburg"))
 
-sf_cont \<- sf_cont1 %\>% mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %\>% mutate(Timestamp_2 = Timestamp+hours(2)) %\>% mutate(Date = as_date(Timestamp_2)) %\>% mutate(Hour = hour(Timestamp_2)) %\>% mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %\>% mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
+metdata <- metdata1 %>%
+  mutate(Timestamp = ymd_hms(datetime,tz = "Africa/Johannesburg"))
+  
+sf_cont <- sf_cont1 %>%
+  mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Timestamp_2 = Timestamp+hours(2)) %>%
+  mutate(Date = as_date(Timestamp_2)) %>%
+  mutate(Hour = hour(Timestamp_2)) %>%
+  mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2)) 
 
-sf_treat \<- sf_treat1 %\>% mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %\>% mutate(Timestamp_2 = Timestamp+hours(2)) %\>% mutate(Date = as_date(Timestamp_2)) %\>% mutate(Hour = hour(Timestamp_2)) %\>% mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %\>% mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
 
-#remove unneeded variables rm(metdata1,sf_cont1, sf_treat1)
+sf_treat <- sf_treat1 %>%
+  mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Timestamp_2 = Timestamp+hours(2)) %>%
+  mutate(Date = as_date(Timestamp_2)) %>%
+  mutate(Hour = hour(Timestamp_2)) %>%
+  mutate(Rounded_timestamp = ymd_hms(Rounded_timestamp,tz="Africa/Johannesburg")) %>%
+  mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
+
+
+```
+
+
+
+```{r}
+#remove unneeded variables 
+rm(metdata1,sf_cont1, sf_treat1)
+```
 
 ##################################### 
 
@@ -41,32 +79,83 @@ sf_treat \<- sf_treat1 %\>% mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Joha
 
 ####################################### 
 
+
+```{r}
 # Function to remove outliers
+remove_sapflow_outliers <- function(df) {
+  df <- df %>%
+    arrange(Timestamp) %>%
+    mutate(
+      val = Mean_Heat_Ratio,
+      lag1 = lag(val, 1),
+      lag2 = lag(val, 2),
+      lag3 = lag(val, 3),
+      lag4 = lag(val, 4),
+      lag5 = lag(val, 5)
+    ) %>%
+    rowwise() %>%
+    mutate(
+      rolling_mean = mean(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE),
+      rolling_sd = sd(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE),
+      is_outlier = abs(val - rolling_mean) > (2 * rolling_sd)
+    ) %>%
+    ungroup()
+  
+  return(df)
+}
+```
 
-remove_sapflow_outliers \<- function(df) { df \<- df %\>% arrange(Timestamp) %\>% mutate( val = Mean_Heat_Ratio, lag1 = lag(val, 1), lag2 = lag(val, 2), lag3 = lag(val, 3), lag4 = lag(val, 4), lag5 = lag(val, 5) ) %\>% rowwise() %\>% mutate( rolling_mean = mean(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE), rolling_sd = sd(c(lag1, lag2, lag3, lag4, lag5), na.rm = TRUE), is_outlier = abs(val - rolling_mean) \> (2 \* rolling_sd) ) %\>% ungroup()
-
-return(df) }
-
+```{r}
 # Apply to both sapflow datasets
 
-sf_cont_marked \<- remove_sapflow_outliers(sf_cont) sf_treat_marked \<- remove_sapflow_outliers(sf_treat)
+sf_cont_marked <- remove_sapflow_outliers(sf_cont) 
+sf_treat_marked <- remove_sapflow_outliers(sf_treat)
 
+```
+
+
+
+
+```{r}
 # Filter out outliers for clean datasets
+sf_cont_clean <- sf_cont_marked %>% filter(!is_outlier | is.na(is_outlier))
+sf_treat_clean <- sf_treat_marked %>% filter(!is_outlier | is.na(is_outlier))
 
-sf_cont_clean \<- sf_cont_marked %\>% filter(!is_outlier \| is.na(is_outlier)) sf_treat_clean \<- sf_treat_marked %\>% filter(!is_outlier \| is.na(is_outlier))
+```
 
-############################################# 
 
+
+```{r}
+#############################################
 #### creating a multi-panel figure of continuous data
 
-sapflow \<- ggplot(NULL)+ geom_line(data=sf_cont_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="darkblue") + geom_line(data=sf_treat_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="red") + ylim(0.5,2) + labs(x= "Date", y = "Heat Ratio") + theme_minimal() + xlab(NULL)
+sapflow <- ggplot(NULL)+
+  geom_line(data=sf_cont_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="darkblue") +
+  geom_line(data=sf_treat_clean,aes(x=Timestamp_2,y=Mean_Heat_Ratio),col="red") +
+  ylim(0.5,2) +
+  labs(x= "Date", y = "Heat Ratio") +
+  theme_minimal() +
+  xlab(NULL)
 
-soilmoisture \<- ggplot(NULL)+ geom_line(data=metdata, aes(x=Timestamp, y = SM_T), col="pink") + geom_line(data=metdata, aes(x=Timestamp, y = SM_C), col="lightblue") + #ylim(0.5,2) + labs(x= "Date", y = "Soil Water Potential (MPa)") + theme_minimal() + xlab(NULL)
+soilmoisture <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = SM_T), col="pink") +
+  geom_line(data=metdata, aes(x=Timestamp, y = SM_C), col="lightblue") +
+  #ylim(0.5,2) +
+  labs(x= "Date", y = "Soil Water Potential (MPa)") +
+  theme_minimal() +
+  xlab(NULL)
 
-VPD \<- ggplot(NULL)+ geom_line(data=metdata, aes(x=Timestamp, y = VPD)) + labs(x= "Date", y = "VPD (kPa)") + theme_minimal() + xlab(NULL)
+VPD <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = VPD)) +
+  labs(x= "Date", y = "VPD (kPa)") +
+  theme_minimal() +
+  xlab(NULL)
 
-Temp \<- ggplot(NULL)+ geom_line(data=metdata, aes(x=Timestamp, y = AirTC_avg)) + labs(x= "Date", y = "Air Temp (C)") + theme_minimal()
-
-combined_plot \<- ggarrange(sapflow, soilmoisture,VPD, Temp, ncol=1, align="v", legend = "right") combined_plot
-
-#remove unneeded plots rm(sapflow, soilmoisture,VPD, Temp)
+Temp <- ggplot(NULL)+
+  geom_line(data=metdata, aes(x=Timestamp, y = AirTC_avg)) +
+  labs(x= "Date", y = "Air Temp (C)") +
+  theme_minimal() 
+  
+combined_plot <- ggarrange(sapflow, soilmoisture,VPD, Temp, ncol=1, align="v", legend = "right")
+combined_plot
+```
