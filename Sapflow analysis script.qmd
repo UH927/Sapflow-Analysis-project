@@ -18,20 +18,20 @@ library(tidyverse)
 
 
 #read in data
-metdata_clean <- read.csv("metdata.csv")
-sf_cont_clean <- read.csv("sapflow_control.csv")
-sf_treat_clean <- read.csv("sapflow_treatment.csv")
+metdata1 <- read.csv("metdata.csv")
+sf_cont1 <- read.csv("sapflow_control.csv")
+sf_treat1 <- read.csv("sapflow_treatment.csv")
 
 #View the data
-View(metdata_clean)
-View(sf_cont_clean)
-View(sf_treat_clean)
+View(metdata1)
+View(sf_cont1)
+View(sf_treat1)
 
 #convert to correct time
-metdata <- metdata_clean %>%
+metdata <- metdata1 %>%
   mutate(Timestamp = ymd_hms(datetime,tz = "Africa/Johannesburg"))
   
-sf_cont <- sf_cont_clean %>%
+sf_cont <- sf_cont1 %>%
   mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
   mutate(Timestamp_2 = Timestamp+hours(2)) %>%
   mutate(Date = as_date(Timestamp_2)) %>%
@@ -40,7 +40,7 @@ sf_cont <- sf_cont_clean %>%
   mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2)) 
 
 
-sf_treat <- sf_treat_clean %>%
+sf_treat <- sf_treat1 %>%
   mutate(Timestamp = ymd_hms(Timestamp,tz="Africa/Johannesburg")) %>%
   mutate(Timestamp_2 = Timestamp+hours(2)) %>%
   mutate(Date = as_date(Timestamp_2)) %>%
@@ -49,7 +49,7 @@ sf_treat <- sf_treat_clean %>%
   mutate(Rounded_timestamp_2 = Rounded_timestamp+hours(2))
 
 #remove unneeded variables
-rm(metdata_clean,sf_cont_clean, sf_treat_clean)
+rm(metdata1,sf_cont1, sf_treat1)
 
 #####################################
 ### removing outliers
@@ -122,3 +122,4 @@ combined_plot
 
 #remove unneeded plots
 rm(sapflow, soilmoisture,VPD, Temp)
+
