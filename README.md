@@ -5,9 +5,9 @@ variety of ways, however the future for renosterveld is uncertain given the lack
 
 Variables include:
 Heat ratio as a measure of sapflow: measures transpiration under both drought and environmental conditions.
-VPD (Vapour Pressure Deficit): the difference between the moisture in the air and how much moisture the air could hold when saturated.
-Soil Moisture: measures moisture in the soil.
-Temp: measures max temperature throughout the day in celcius.
+VPD (Vapour Pressure Deficit): the difference between the moisture in the air and how much moisture the air could hold when saturated in kPa. 
+Soil Moisture: measures moisture in the soil in MPA.
+Temp: measures max temperature throughout the day in degrees celcius.
 
 
 
