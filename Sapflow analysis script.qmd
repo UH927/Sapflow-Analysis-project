@@ -11,7 +11,7 @@ editor: visual
 #This script contains code that cleans up the Sapflow analysis data while producing relevant figures for data analysis.
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, message=FALSE}
 #preparing relevant R packages
 library(ggpubr) 
 library(ggplot2) 
@@ -23,7 +23,7 @@ library(tidyverse)
 
 
 
-```{r,error=FALSE, message=FALSE}
+```{r}
 #read in data 
  metdata1 <- read.csv("data/Raw_Data/data_raw_metdata.csv")
  sf_cont1 <- read.csv("data/Raw_Data/data_raw_sapflow_control.csv") 
