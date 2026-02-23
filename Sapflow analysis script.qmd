@@ -25,9 +25,9 @@ library(tidyverse)
 
 ```{r,error=FALSE, message=FALSE}
 #read in data 
- metdata1 <- read.csv("data//metdata.csv")
- sf_cont1 <- read.csv("data/cleaned/sapflow_control.csv") 
- sf_treat1 <- read.csv("data/cleaned/sapflow_treatment.csv")
+ metdata1 <- read.csv("data/Raw_Data/data_raw_metdata.csv")
+ sf_cont1 <- read.csv("data/Raw_Data/data_raw_sapflow_control.csv") 
+ sf_treat1 <- read.csv("data/Raw_Data/data_raw_sapflow_treatment.csv")
 ```
 
 
